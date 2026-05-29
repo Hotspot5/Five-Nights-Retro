@@ -1,6 +1,15 @@
 import threading
 import time
 import random
+import constants
+
+MOVEMENT_FREQ = constants.MOVEMENT_FREQ
+NIGHT_LEN = constants.NIGHT_LEN
+ANIMATRONIC_GAP = constants.ANIMATRONIC_GAP
+
+FPS = constants.FPS
+
+AI_LEVELS = constants.AI_LEVELS
 
 status = {
     'freddy': 0, 
@@ -22,53 +31,26 @@ status = {
     'itsme': 0, 
 }
 
-AIlevels = {
-    'freddy': 0, 
-    'bonnie': 0, 
-    'chica': 0, 
-    'foxy': 0, 
-    't freddy': 0, 
-    't bonnie': 0, 
-    't chica': 0, 
-    't foxy': 0, 
-    'w freddy': 0, 
-    'w bonnie': 0, 
-    'w chica': 0, 
-    'w foxy': 0, 
-    'bb': 0, 
-    'mangle': 0, 
-    'puppet': 0, 
-    'springtrap': 0, 
-    'itsme': 0, 
-}
-
-movementFreq = 5
-nightLength = 360
-animatronicGap = 0.25
-
-movementTimer = 0
 nightTimer = 0
 
-fps = 60
-
 def gameloop():
-    global fps, nightTimer, status
+    global nightTimer, status
     
     start = time.time()
     
-    while nightTimer < nightLength:
+    while nightTimer < NIGHT_LEN:
         
-        while time.time() - start < movementFreq:
-            time.sleep(1/fps)
+        while time.time() - start < MOVEMENT_FREQ:
+            time.sleep(1/FPS)
             
         start = time.time()
-        nightTimer += movementFreq
+        nightTimer += MOVEMENT_FREQ
         
         for animatronic in status:
-            if random.random() < AIlevels[animatronic] / 20:
+            if random.random() < AI_LEVELS[animatronic] / 20:
                  status[animatronic] += 1
                  print(animatronic, status[animatronic])
-             time.sleep(animatronicGap)
+            time.sleep(ANIMATRONIC_GAP)
     return
         
 gameloop()
