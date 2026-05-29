@@ -5,8 +5,7 @@ AI_LEVELS = {
     'foxy': 1, 
     't freddy': 1, 
     't bonnie': 1, 
-    't chica': 1, 
-    't foxy': 1, 
+    't chica': 1,  
     'w freddy': 1, 
     'w bonnie': 1, 
     'w chica': 1, 
@@ -18,8 +17,9 @@ AI_LEVELS = {
     'itsme': 1, 
 }
 
-MOVEMENT_FREQ = 5
-NIGHT_LEN = 50
+MOVEMENT_FREQ = 4
+NIGHT_LEN = 320
 ANIMATRONIC_GAP = 0.25
+PUPPET_MAX_TIMER = NIGHT_LEN / AI_LEVELS['puppet']
 
 FPS = 60
