@@ -51,7 +51,9 @@ nightTimer = 0
 
 fps = 60
 
-def gameloop(fps):
+def gameloop():
+    global fps, nightTimer, status
+    
     start = time.time()
     
     while nightTimer < nightLength:
@@ -65,7 +67,9 @@ def gameloop(fps):
         for animatronic in status:
             if random.random() < AIlevels[animatronic] / 20:
                  status[animatronic] += 1
+                 print(animatronic, status[animatronic])
              time.sleep(animatronicGap)
     return
         
-            
+gameloop()
+print('done')
