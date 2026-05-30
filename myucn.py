@@ -53,6 +53,7 @@ rightVentBusy = False
 officeBusy = False
 
 def gameloop():
+    
     global nightTimer, status, hallBusy, officeBusy, leftVentBusy, rightVentBusy, foxyFlashed, batteryStolen
       
     start = time.time()
@@ -162,17 +163,17 @@ def gameloop():
                             death('Freddy Fazbear')
                             return
             
-                if animatronic == 'bonnie':
+                elif animatronic == 'bonnie':
                     if status[animatronic] == 2:
                             death('Bonnie')
                             return
                 
-                if animatronic == 'chica':
+                elif animatronic == 'chica':
                     if status[animatronic] == 2:
                             death('Chica')
                             return
                 
-                if animatronic in ['t freddy', 'w freddy', 'w bonnie']:
+                elif animatronic in ['t freddy', 'w freddy', 'w bonnie']:
                     if status[animatronic] == 1:
                         if hallBusy:
                             status[animatronic] = 0
@@ -185,7 +186,7 @@ def gameloop():
                         else:
                             status[animatronic] = 1
                 
-                if animatronic == 't bonnie':
+                elif animatronic == 't bonnie':
                     if status[animatronic] == 1:
                         if rightVentBusy:
                             status[animatronic] = 0
@@ -195,7 +196,7 @@ def gameloop():
                         death('Toy Bonnie')
                         return
                 
-                if animatronic == 'mangle':
+                elif animatronic == 'mangle':
                     if status[animatronic] == 1:
                         if hallBusy:
                             status[animatronic] = 0
@@ -211,7 +212,7 @@ def gameloop():
                         death('Mangle')
                         return
                 
-                if animatronic == 't chica':
+                elif animatronic == 't chica':
                     if status[animatronic] == 1:
                         if hallBusy:
                             status[animatronic] = 0
@@ -227,7 +228,7 @@ def gameloop():
                         death('Toy Chica')
                         return
                 
-                if animatronic == 'bb':
+                elif animatronic == 'bb':
                     if status[animatronic] == 1:
                         if leftVentBusy:
                             status[animatronic] = 0
@@ -237,13 +238,13 @@ def gameloop():
                         batteryStolen = True
                         status[animatronic] = 3
                 
-                if animatronic == 'w chica':
+                elif animatronic == 'w chica':
                     if not officeBusy:
                         officeBusy = True
                     else:
                         status[animatronic] = 0
                 
-                if animatronic == 'w foxy':
+                elif animatronic == 'w foxy':
                     if status[animatronic] == 2:
                         death('Withered Foxy')
                         return
@@ -277,43 +278,64 @@ while not dead:
             else:
                 print('BLACKOUT SEQUENCE: Withered Chica')
                 
-            print('\nA - Put On Mask')
+            print('\n[A] - Put On Mask')
             choice = input('\n> ')
             if 'a' in choice.lower():
                 location = 'mask'
                 maskOn = True
         else:
-            print('Where do you want to go?\n\n1 - Left Door\n2 - Left Vent\n3 - Hallway\n4 - Right Door\n5 - Right Vent\n6 - Parts and Service\n\nA - Put on Mask')
+            print('You are in the center of the room.')
+            print()
+            print('='*40)
+            print()
+            print('Where do you want to go?')
+            print()
+            print('='*40)
+            print()
+            print(f'[1] - Left Door\n[2] - Right Door\n\n[3] - Left Vent\n[4] - Right Vent\n\n[5] - Parts & Service\n\n[6] - Hallway\n\n{'='*40}\n\n[A] - Put On Mask')
+            #print('Where do you want to go?\n\n1 - Left Door\n2 - Left Vent\n3 - Hallway\n4 - Right Door\n5 - Right Vent\n6 - Parts and Service\n\nA - Put on Mask')
             choice = input('\n> ')
             if '1' in choice:
                 location = 'l door'
             elif '2' in choice:
-                location = 'l vent'
-            elif '3' in choice:
-                location = 'hall'
-            elif '4' in choice:
                 location = 'r door'
-            elif '5' in choice:
+            elif '3' in choice:
+                location = 'l vent'
+            elif '4' in choice:
                 location = 'r vent'
-            elif '6' in choice:
+            elif '5' in choice:
                 location = 'parts'
+            elif '6' in choice:
+                location = 'hall'
             elif 'a' in choice.lower():
                 location = 'mask'
                 maskOn = True
     
     elif location == 'mask':
-        print('A - Take Off Mask')
+        print('='*40)
+        print()
+        print('[A] - Take Off the Mask')
+        print()
+        print('='*40)
         choice = input('\n> ')
         if 'a' in choice.lower():
             maskOn = False
             location = 'center'
             
     elif location == 'l door':
-        print('You are at the left door\n\n1 - Flash Door\n2 - ', end='')
+        print('You are at the Left Door.')
+        print()
+        print('='*40)
+        print()
+        print('What do you want to do?')
+        print()
+        print('='*40)
+        print()
+        print('[1] - Flash the door\n\n[2] - ', end='')
         if leftDoorDown:
-            print('Open Door\n3 - Leave')
+            print(f'Open Door\n\n{'='*40}\n\n[3] - Leave')
         else:
-            print('Close Door\n3 - Leave')
+            print(f'Close Door\n\n{'='*40}\n\n[3] - Leave')
         choice = input('\n> ')
         
         if '1' in choice and not batteryStolen:
@@ -330,11 +352,19 @@ while not dead:
             location = 'center'
 
     elif location == 'r door':
-        print('You are at the right door\n\n1 - Flash Door\n2 - ', end='')
+        print('You are at the Right Door.')
+        print()
+        print('='*40)
+        print()
+        print('What do you want to do?')
+        print()
+        print('='*40)
+        print()
+        print('[1] - Flash the door\n\n[2] - ', end='')
         if rightDoorDown:
-            print('Open Door\n3 - Leave')
+            print(f'Open the Door\n\n{'='*40}\n\n[3] - Leave')
         else:
-            print('Close Door\n3 - Leave')
+            print(f'Close the Door\n\n{'='*40}\n\n[3] - Leave')
             
         choice = input('\n> ')
         
@@ -352,7 +382,15 @@ while not dead:
             location = 'center'
     
     elif location == 'hall':
-        print('You are in the hallway\n\n1 - Flash Hallway\n2 - Leave')
+        print('You are in the Hallway.')
+        print()
+        print('='*40)
+        print()
+        print('What do you want to do?')
+        print()
+        print('='*40)
+        print()
+        print(f'[1] - Flash the Hallway\n\n{'='*40}\n\n[2] - Leave the Hallway')
         choice = input('\n> ')
         
         if '1' in choice and not batteryStolen:
@@ -374,11 +412,19 @@ while not dead:
             else:
                 input('there was nobody there')
     
-        if '2' in choice:
+        elif '2' in choice:
             location = 'center'
     
     elif location == 'l vent':
-        print('You are at the left vent\n\n1 - Flash Vent\n2 - Leave')
+        print('You are beside the Left Vent.')
+        print()
+        print('='*40)
+        print()
+        print('What do you want to do?')
+        print()
+        print('='*40)
+        print()
+        print(f'[1] - Flash the Vent\n\n{'='*40}\n\n[2] - Leave')
         choice = input('\n> ')
         
         if '1' in choice and not batteryStolen:
@@ -390,11 +436,19 @@ while not dead:
             else:
                 input('there was nobody there')
     
-        if '2' in choice:
+        elif '2' in choice:
             location = 'center'
     
     elif location == 'r vent':
-        print('You are at the right vent\n\n1 - Flash Vent\n2 - Leave')
+        print('You are beside the Right Vent.')
+        print()
+        print('='*40)
+        print()
+        print('What do you want to do?')
+        print()
+        print('='*40)
+        print()
+        print(f'[1] - Flash the Vent\n\n{'='*40}\n\n[2] - Leave')
         choice = input('\n> ')
         
         if '1' in choice and not batteryStolen:
@@ -406,11 +460,20 @@ while not dead:
             else:
                 input('there was nobody there')
     
-        if '2' in choice:
+        elif '2' in choice:
             location = 'center'
     
     elif location == 'parts':
-        print('You are in Parts and Service\n\n1 - View Pirate\'s Cove\n2 - Check Music Box\n3 - Leave')
+        #print('You are in Parts and Service\n\n1 - View Pirate\'s Cove\n2 - Check Music Box\n3 - Leave')
+        print('You are in Parts & Service.')
+        print()
+        print('='*40)
+        print()
+        print('What do you want to do?')
+        print()
+        print('='*40)
+        print()
+        print(f'[1] - View Pirate\'s Cove\n\n[2] - Visit the Prize Corner\n\n[3] - Look in the Back Room\n\n{'='*40}\n\n[4] - Leave')
         choice = input('\n> ')
         
         if '1' in choice:
@@ -424,9 +487,12 @@ while not dead:
             elif status['foxy'] == 3:
                 input('foxy is gone')
 
-        if '2' in choice:
+        elif '2' in choice:
+            pass
+        
+        elif '3' in choice:
             pass
     
-        if '3' in choice:
+        elif '4' in choice:
             location = 'center'
     
