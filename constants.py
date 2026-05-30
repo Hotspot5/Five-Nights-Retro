@@ -13,13 +13,11 @@ AI_LEVELS = {
     'bb': 1, 
     'mangle': 1, 
     'puppet': 1, 
-    'springtrap': 1, 
-    'itsme': 1, 
+    'springtrap': 0, 
+    'itsme': 0, 
 }
 
 MOVEMENT_FREQ = 4
 NIGHT_LEN = 320
 ANIMATRONIC_GAP = 0.25
 PUPPET_MAX_TIMER = NIGHT_LEN / AI_LEVELS['puppet']
-
-FPS = 60
