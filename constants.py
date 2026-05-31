@@ -13,12 +13,12 @@ AI_LEVELS = {
     'bb': 1, 
     'mangle': 1, 
     'puppet': 1, 
-    'springtrap': 0, 
-    'itsme': 0, 
+    'springtrap': 1, 
+    'itsme': 1, 
 }
 
-MOVEMENT_FREQ = 4
+SLOW_MOVE = ['freddy', 'bonnie', 'chica', 't freddy', 't bonnie', 'w freddy', 'w bonnie', 'w foxy', 'bb', 'w chica']
+
 NIGHT_LEN = 320
-ANIMATRONIC_GAP = 0.25
-PUPPET_MAX_TIMER = NIGHT_LEN / AI_LEVELS['puppet']
+PUPPET_UNWIND_TIME = NIGHT_LEN / AI_LEVELS['puppet']
 

@@ -13,11 +13,12 @@ def death(animatronic):
     input(f'you got killed by {animatronic}')
     
 
-MOVEMENT_FREQ = constants.MOVEMENT_FREQ
 NIGHT_LEN = constants.NIGHT_LEN
-ANIMATRONIC_GAP = constants.ANIMATRONIC_GAP
-PUPPET_MAX_TIMER = constants.PUPPET_MAX_TIMER
+PUPPET_UNWIND_TIME = constants.PUPPET_UNWIND_TIME
 AI_LEVELS = constants.AI_LEVELS
+SLOW_MOVE = constants.SLOW_MOVE
+
+movementFreq = 4
 
 status = {
     'freddy': 0, 
@@ -38,7 +39,8 @@ status = {
 }
 
 nightTimer = 0
-puppetTimer = 0
+puppetWound = 1
+doorTimer = 0
 dead = False
 
 leftDoorDown = False
@@ -46,25 +48,38 @@ rightDoorDown = False
 maskOn = False
 foxyFlashed = False
 batteryStolen = False
+puppetWinding = False
 
 hallBusy = False
 leftVentBusy = False
 rightVentBusy = False
 officeBusy = False
 
+movedLast = []
+moving = []
+
+def timers():
+    global movementFreq, nightTimer, puppetWound, doorTimer
+    while not dead and nightTimer < NIGHT_LEN:
+        time.sleep(1/10)
+        
+        nightTimer += 0.1
+        
+        if not puppetWinding:
+            puppetWound -= 0.1/PUPPET_UNWIND_TIME
+            
+        if leftDoorDown or rightDoorDown:
+            doorTimer += 0.1
+        elif doorTimer > 0:
+            doorTimer -= 0.1
+            
+        movementFreq = 4 - doorTimer / 5
+
 def gameloop():
     
-    global nightTimer, status, hallBusy, officeBusy, leftVentBusy, rightVentBusy, foxyFlashed, batteryStolen
-      
-    start = time.time()
+    global nightTimer, status, hallBusy, officeBusy, leftVentBusy, rightVentBusy, foxyFlashed, batteryStolen, moving, movedLast
     
     while nightTimer < NIGHT_LEN:
-        
-        waitTime = MOVEMENT_FREQ - (time.time() - start)
-        time.sleep(waitTime)
-        nightTimer += waitTime
-            
-        start = time.time()
         
         for animatronic in status:
             
@@ -76,14 +91,17 @@ def gameloop():
             
             if animatronic == 'freddy' and status[animatronic] == 1 and rightDoorDown:
                 status[animatronic] = 0
+                moving.append(animatronic)
                 continue
                 
             if animatronic == 'bonnie' and status[animatronic] == 1 and leftDoorDown:
                 status[animatronic] = 0
+                moving.append(animatronic)
                 continue
                 
             if animatronic == 'chica' and status[animatronic] == 1 and rightDoorDown:
-                status[animatronic] = 0
+                status[animatronic] = 0#
+                moving.append(animatronic)
                 continue
                 
             if animatronic == 'foxy' and status[animatronic] == 3:
@@ -106,11 +124,13 @@ def gameloop():
                 else:
                     status[animatronic] = 0
                     officeBusy = False
+                    moving.append(animatronic)
                     continue
                 
             if animatronic == 't bonnie' and status[animatronic] == 1 and maskOn:
                 status[animatronic] = 0
                 rightVentBusy = False
+                moving.append(animatronic)
                 continue
             
             if animatronic == 'mangle' and status[animatronic] == 2 and maskOn:
@@ -126,6 +146,7 @@ def gameloop():
             if animatronic == 'bb' and status[animatronic] == 1 and maskOn:
                 status[animatronic] = 0
                 leftVentBusy = False
+                moving.append(animatronic)
                 continue
             
             if animatronic == 'w chica' and status[animatronic] == 1:
@@ -135,12 +156,14 @@ def gameloop():
                 else:
                     status[animatronic] = 0
                     officeBusy = False
+                    moving.append(animatronic)
                     continue
             
             if animatronic == 'w foxy' and status[animatronic] == 1:
                 if foxyFlashed:
                     status[animatronic] = 0
                     foxyFlashed = False
+                    moving.append(animatronic)
                     continue
                 
                 
@@ -151,10 +174,16 @@ def gameloop():
                 
             if random.random() < AI_LEVELS[animatronic] / 20:
                 status[animatronic] += 1
+                
+                if animatronic in SLOW_MOVE:
+                    if animatronic in movedLast:
+                        status[animatronic] -= 1
+                    else:
+                        moving.append(animatronic)
                  
                  
                  
-                 ########## ANIMATRONIC CODE: POTENTIAL EVENTS ##########
+                 ########## ANIMATRONIC CODE: RANDOM EVENTS ##########
                  
                  
                  
@@ -177,6 +206,7 @@ def gameloop():
                     if status[animatronic] == 1:
                         if hallBusy:
                             status[animatronic] = 0
+                            moving.remove(animatronic)
                         else:
                             hallBusy = True
                     if status[animatronic] == 2:
@@ -185,11 +215,13 @@ def gameloop():
                             officeBusy = True
                         else:
                             status[animatronic] = 1
+                            moving.remove(animatronic)
                 
                 elif animatronic == 't bonnie':
                     if status[animatronic] == 1:
                         if rightVentBusy:
                             status[animatronic] = 0
+                            moving.remove(animatronic)
                         else:
                             rightVentBusy = True
                     if status[animatronic] == 2:
@@ -232,6 +264,7 @@ def gameloop():
                     if status[animatronic] == 1:
                         if leftVentBusy:
                             status[animatronic] = 0
+                            moving.remove(animatronic)
                         else:
                             leftVentBusy = True
                     if status[animatronic] == 2:
@@ -243,6 +276,7 @@ def gameloop():
                         officeBusy = True
                     else:
                         status[animatronic] = 0
+                        moving.remove(animatronic)
                 
                 elif animatronic == 'w foxy':
                     if status[animatronic] == 2:
@@ -255,15 +289,22 @@ def gameloop():
                 
                 
                 
-            time.sleep(ANIMATRONIC_GAP)
+            time.sleep(movementFreq / 14)
+            
+        movedLast = moving.copy()
+        moving = []
+        
+        print(movedLast)
         
 threading.Thread(target=gameloop).start()
+threading.Thread(target=timers).start()
 
 location = 'center'
 
 while not dead:
     
     cls()
+    #print(movementFreq)
     
     if location == 'center':
         
