@@ -17,6 +17,7 @@ NIGHT_LEN = constants.NIGHT_LEN
 PUPPET_UNWIND_TIME = constants.PUPPET_UNWIND_TIME
 AI_LEVELS = constants.AI_LEVELS
 SLOW_MOVE = constants.SLOW_MOVE
+EASY_ANIMATRONICS = constants.EASY_ANIMATRONICS
 
 movementFreq = 4
 
@@ -41,8 +42,9 @@ status = {
 nightTimer = 0
 puppetWound = 1
 doorTimer = 0
-dead = False
+lastLureTime = 0
 
+dead = False
 leftDoorDown = False
 rightDoorDown = False
 maskOn = False
@@ -67,6 +69,13 @@ def timers():
         
         if not puppetWinding:
             puppetWound -= 0.1/PUPPET_UNWIND_TIME
+            if puppetWound <= 0:
+                death('Puppet')
+                return
+        else:
+            puppetWound += 0.01
+            if puppetWound > 1:
+                puppetWound = 1
             
         if leftDoorDown or rightDoorDown:
             doorTimer += 0.1
@@ -79,13 +88,13 @@ def gameloop():
     
     global nightTimer, status, hallBusy, officeBusy, leftVentBusy, rightVentBusy, foxyFlashed, batteryStolen, moving, movedLast
     
-    while nightTimer < NIGHT_LEN:
+    while nightTimer < NIGHT_LEN and not dead:
         
         for animatronic in status:
             
             
             
-            ########## ANIMATRONIC CODE: SCRIPTED EVENTS
+            ########## ANIMATRONIC CODE: SCRIPTED EVENTS ##########
             
             
             
@@ -165,14 +174,22 @@ def gameloop():
                     foxyFlashed = False
                     moving.append(animatronic)
                     continue
+
+            if animatronic == 'itsme' and status[animatronic] == 1:
+                if maskOn:
+                    status[animatronic] = 0
+                    continue
+                else:
+                    death('itsme')
+                    return
                 
+            div = 20
+            if animatronic in EASY_ANIMATRONICS or animatronic in SLOW_MOVE:
+                div = 30
+            if animatronic == 'w chica' or animatronic == 'itsme':
+                div = 80
                 
-            
-            ########## END ##########
-            
-            
-                
-            if random.random() < AI_LEVELS[animatronic] / 20:
+            if random.random() < AI_LEVELS[animatronic] / div:
                 status[animatronic] += 1
                 
                 if animatronic in SLOW_MOVE:
@@ -209,7 +226,7 @@ def gameloop():
                             moving.remove(animatronic)
                         else:
                             hallBusy = True
-                    if status[animatronic] == 2:
+                    elif status[animatronic] == 2:
                         if not officeBusy:
                             hallBusy = False
                             officeBusy = True
@@ -224,7 +241,7 @@ def gameloop():
                             moving.remove(animatronic)
                         else:
                             rightVentBusy = True
-                    if status[animatronic] == 2:
+                    elif status[animatronic] == 2:
                         death('Toy Bonnie')
                         return
                 
@@ -234,29 +251,31 @@ def gameloop():
                             status[animatronic] = 0
                         else:
                             hallBusy = True
-                    if status[animatronic] == 2:
+                    elif status[animatronic] == 2:
                         if rightVentBusy:
                             status[animatronic] = 1
                         else:
                             rightVentBusy = True
                             hallBusy = False
-                    if status[animatronic] == 3:
+                    elif status[animatronic] == 3:
+                        rightVentBusy = False
+                    elif status[animatronic] == 4:
                         death('Mangle')
                         return
-                
+                                   
                 elif animatronic == 't chica':
                     if status[animatronic] == 1:
                         if hallBusy:
                             status[animatronic] = 0
                         else:
                             hallBusy = True
-                    if status[animatronic] == 2:
+                    elif status[animatronic] == 2:
                         if leftVentBusy:
                             status[animatronic] = 1
                         else:
                             leftVentBusy = True
                             hallBusy = False
-                    if status[animatronic] == 3:
+                    elif status[animatronic] == 3:
                         death('Toy Chica')
                         return
                 
@@ -267,9 +286,8 @@ def gameloop():
                             moving.remove(animatronic)
                         else:
                             leftVentBusy = True
-                    if status[animatronic] == 2:
+                    elif status[animatronic] == 2:
                         batteryStolen = True
-                        status[animatronic] = 3
                 
                 elif animatronic == 'w chica':
                     if not officeBusy:
@@ -282,29 +300,34 @@ def gameloop():
                     if status[animatronic] == 2:
                         death('Withered Foxy')
                         return
+
+                elif animatronic == 'springtrap':
+                    if status['springtrap'] == 4:
+                        death('Springtrap')
+                        return
                     
-                
-                
-                ########## END ##########
-                
-                
-                
             time.sleep(movementFreq / 14)
             
         movedLast = moving.copy()
         moving = []
-        
-        print(movedLast)
         
 threading.Thread(target=gameloop).start()
 threading.Thread(target=timers).start()
 
 location = 'center'
 
+
+
+########## USER INTERFACE AND ACTIONS ##########
+
+
+
 while not dead:
     
     cls()
-    #print(movementFreq)
+    
+    if status['itsme'] == 1:
+        print('itsme')
     
     if location == 'center':
         
@@ -319,12 +342,19 @@ while not dead:
             else:
                 print('BLACKOUT SEQUENCE: Withered Chica')
                 
-            print('\n[A] - Put On Mask')
+            print(f'\n{'='*40}\n\n[A] - Put On Mask\n\n{'='*40}')
             choice = input('\n> ')
             if 'a' in choice.lower():
                 location = 'mask'
                 maskOn = True
+            
         else:
+            
+            if status['bb'] > 1:
+                print('BB HAS STOLEN YOUR BATTERIES\n')
+            if status['mangle'] == 3:
+                print('MANGLE IS ON THE ROOF\n')
+                
             print('You are in the center of the room.')
             print()
             print('='*40)
@@ -382,9 +412,9 @@ while not dead:
         if '1' in choice and not batteryStolen:
             cls()
             if status['bonnie'] == 1:
-                input('bonnie was there')
+                input('bonnie was there\n\n> ')
             else:
-                input('there was nobody there')
+                input('there was nobody there\n\n> ')
                 
         elif '2' in choice:
             leftDoorDown = bool(1 - leftDoorDown)
@@ -412,9 +442,9 @@ while not dead:
         if '1' in choice and not batteryStolen:
             cls()
             if status['chica'] == 1:
-                input('chica was there')
+                input('chica was there\n\n> ')
             else:
-                input('there was nobody there')
+                input('there was nobody there\n\n> ')
                 
         elif '2' in choice:
             rightDoorDown = bool(1 - rightDoorDown)
@@ -439,19 +469,19 @@ while not dead:
                 foxyFlashed = True
             cls()
             if status['t chica'] == 1:
-                input('toy chica was there')
+                input('toy chica was there\n\n> ')
             elif status['t freddy'] == 1:
-                input('toy freddy was there')
+                input('toy freddy was there\n\n> ')
             elif status['mangle'] == 1:
-                input('mangle was there')
+                input('mangle was there\n\n> ')
             elif status['w bonnie'] == 1:
-                input('withered bonnie was there')
+                input('withered bonnie was there\n\n> ')
             elif status['w freddy'] == 1:
-                input('withered freddy was there')
+                input('withered freddy was there\n\n> ')
             elif status['w foxy'] == 1:
-                input('withered foxy was there')
+                input('withered foxy was there\n\n> ')
             else:
-                input('there was nobody there')
+                input('there was nobody there\n\n> ')
     
         elif '2' in choice:
             location = 'center'
@@ -471,11 +501,11 @@ while not dead:
         if '1' in choice and not batteryStolen:
             cls()
             if status['t chica'] == 2:
-                input('toy chica was there')
+                input('toy chica was there\n\n> ')
             elif status['bb'] == 1:
-                input('bb was there')
+                input('bb was there\n\n> ')
             else:
-                input('there was nobody there')
+                input('there was nobody there\n\n> ')
     
         elif '2' in choice:
             location = 'center'
@@ -495,17 +525,16 @@ while not dead:
         if '1' in choice and not batteryStolen:
             cls()
             if status['t bonnie'] == 1:
-                input('toy bonnie was there')
+                input('toy bonnie was there\n\n> ')
             elif status['mangle'] == 2:
-                input('mangle was there')
+                input('mangle was there\n\n> ')
             else:
-                input('there was nobody there')
+                input('there was nobody there\n\n> ')
     
         elif '2' in choice:
             location = 'center'
     
     elif location == 'parts':
-        #print('You are in Parts and Service\n\n1 - View Pirate\'s Cove\n2 - Check Music Box\n3 - Leave')
         print('You are in Parts & Service.')
         print()
         print('='*40)
@@ -520,20 +549,91 @@ while not dead:
         if '1' in choice:
             cls()
             if status['foxy'] == 0:
-                input('the curtains are closed')
+                input('the curtains are closed\n\n> ')
             elif status['foxy'] == 1:
-                input('foxy is peeking out the curtains')
+                input('foxy is peeking out the curtains\n\n> ')
             elif status['foxy'] == 2:
-                input('foxy is leaning out the curtains')
+                input('foxy is leaning out the curtains\n\n> ')
             elif status['foxy'] == 3:
-                input('foxy is gone')
+                input('foxy is gone\n\n> ')
 
         elif '2' in choice:
-            pass
+            location = 'prize'
         
         elif '3' in choice:
-            pass
+            location = 'back'
     
         elif '4' in choice:
             location = 'center'
     
+    elif location == 'prize':
+        print('You are in the Prize Corner.')
+        print()
+        print('='*40)
+        print()
+        print('What do you want to do?')
+        print()
+        print('='*40)
+        print()
+        print(f'[1] - Check Music Bok\n\n[2] - Wind Up Music Box\n\n{'='*40}\n\n[3] - Leave')
+        choice = input('\n> ')
+        
+        if '1' in choice:
+            cls()
+            print('='*40)
+            print()
+            print(f'Music Box Level: {round(puppetWound*100)}%')
+            print()
+            print('='*40)
+            input('\n> ')
+        
+        elif '2' in choice:
+            cls()
+            puppetWinding = True
+            print('='*40)
+            print()
+            print(f'Winding Music Box...')
+            print()
+            print('='*40)
+            print()
+            print('[enter] - Stop Winding the Music Box')
+            input('\n> ')
+            puppetWinding = False
+        
+        elif '3' in choice:
+            location = 'parts'
+
+    elif location == 'back':
+        print('You are in the Back Room.')
+        print()
+        print('='*40)
+        print()
+        print('What do you want to do?')
+        print()
+        print('='*40)
+        print()
+        print(f'[1] - Flash the Room\n\n[2] - Use Audio Lure\n\n{'='*40}\n\n[3] - Leave')
+        choice = input('\n> ')
+        
+        if '1' in choice:
+            cls()
+            if status['springtrap'] == 0:
+                input('Springtrap is not here\n\n> ')
+            if status['springtrap'] == 1:
+                input('Springtrap is sat at the end of the room\n\n> ')
+            if status['springtrap'] == 2:
+                input('Springtrap is standing\n\n> ')
+            if status['springtrap'] == 3:
+                input('springtrap is close\n\n> ')
+                
+        elif '2' in choice:
+            if time.time() - lastLureTime > 7:
+                lastLureTime = time.time()
+                if status['springtrap'] > 0:
+                    status['springtrap'] -= 1
+            else:
+                cls()
+                input(f'{'='*40}\n\nThe Audio Lure did not work.\n\n{'='*40}\n\n> ')
+        
+        elif '3' in choice:
+            location = 'parts'
