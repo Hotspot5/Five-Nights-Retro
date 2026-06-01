@@ -17,8 +17,8 @@ AI_LEVELS = {
     'itsme': 3, 
 }
 
-SLOW_MOVE = ['freddy', 'bonnie', 'chica', 't freddy', 't bonnie', 'w freddy', 'w bonnie', 'w foxy', 'bb', 'w chica']
-EASY_ANIMATRONICS = ['foxy', 't chica']
+SLOW_MOVE = ['freddy', 'bonnie', 't freddy', 't bonnie', 'w freddy', 'w bonnie', 'w foxy', 'bb', 'w chica']
+EASY_ANIMATRONICS = ['foxy', 't chica', 'chica']
 
 NIGHT_LEN = 321
 
