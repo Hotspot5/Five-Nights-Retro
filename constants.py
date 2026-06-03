@@ -17,10 +17,11 @@ AI_LEVELS = {
     'itsme': 2, 
 }
 
-SLOW_MOVE = ['freddy', 'bonnie', 't freddy', 't bonnie', 'w freddy', 'w bonnie', 'w foxy', 'bb', 'w chica']
-EASY_ANIMATRONICS = ['foxy', 't chica', 'chica']
+MOVES_1 = {}
+MOVES_2 = {'w foxy', 'itsme'}
+MOVES_3 = {}
 
-NIGHT_LEN = 321
+NIGHT_LEN = 360
 
 if AI_LEVELS['puppet']:
     PUPPET_UNWIND_TIME = NIGHT_LEN / AI_LEVELS['puppet'] - 1

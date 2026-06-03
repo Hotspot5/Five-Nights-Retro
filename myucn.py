@@ -63,22 +63,22 @@ def death(animatronic):
             input()
 
 def checkWarning():
-    if (status['freddy'] == 1
-        or status['bonnie'] == 1
-        or status['chica'] == 2
-        or status['foxy'] == 3
-        or status['t freddy'] == 2
-        or status['t bonnie'] == 1
-        or status['t chica'] == 2
-        or status['w freddy'] == 2
-        or status['w bonnie'] == 2
-        or status['w chica'] == 1
+    if (status['freddy'] >= 2
+        or status['bonnie'] >= 2
+        or status['chica'] >= 2
+        or status['foxy'] >= 2
+        or status['t freddy'] >= 2
+        or status['t bonnie'] >= 2
+        or status['t chica'] >= 2
+        or status['w freddy'] >= 2
+        or status['w bonnie'] >= 2
+        or status['w chica'] >= 2
         or status['w foxy'] == 1
         or status['mangle'] >= 2
-        or status['springtrap'] == 3
-        or puppetWound < 0.2
+        or status['springtrap'] >= 2
+        or puppetWound < 0.125
         or status['itsme'] == 1
-        or status['bb'] == 1
+        or status['bb'] >= 2
         ):
         return True
     return False
@@ -138,10 +138,12 @@ sounds = {
 NIGHT_LEN = constants.NIGHT_LEN
 PUPPET_UNWIND_TIME = constants.PUPPET_UNWIND_TIME
 AI_LEVELS = constants.AI_LEVELS
-SLOW_MOVE = constants.SLOW_MOVE
-EASY_ANIMATRONICS = constants.EASY_ANIMATRONICS
 
-movementFreq = 4
+MOVES_3 = constants.MOVES_3
+MOVES_2 = constants.MOVES_2
+MOVES_1 = constants.MOVES_1
+
+movementFreq = 5
 
 status = {
     'freddy': 0, 
@@ -166,6 +168,7 @@ nightTimer = 0
 puppetWound = 1
 doorTimer = 0
 lastLureTime = 0
+foxyTimer = 0
 
 dead = False
 leftDoorDown = False
@@ -183,13 +186,11 @@ leftVentBusy = False
 rightVentBusy = False
 officeBusy = False
 
-movedLast = []
-moving = []
-
 def timers():
-    global movementFreq, nightTimer, puppetWound, doorTimer, playingWarning
+    global movementFreq, nightTimer, puppetWound, doorTimer, playingWarning, foxyTimer
     lastTime = time.time()
     while not dead and nightTimer < NIGHT_LEN:
+        
         time.sleep(1/10)
         
         nightTimer += time.time()-lastTime
@@ -214,6 +215,19 @@ def timers():
         elif not warning and playingWarning:
             sounds['siren'].stop()
             playingWarning = False
+        
+        if status['foxy'] >= 3:
+            foxyTimer += 0.1
+            if foxyTimer > movementFreq * 20 / AI_LEVELS['foxy']:
+                if not leftDoorDown:
+                    death('foxy')
+                else:
+                    foxyTimer = 0
+                    status['foxy'] = 0
+                    sounds['doorbang'].play()
+            
+        
+        
             
         if leftDoorDown or rightDoorDown:
             doorTimer += 0.1
@@ -225,11 +239,9 @@ def timers():
 
 def gameloop():
     
-    global nightTimer, status, hallBusy, officeBusy, leftVentBusy, rightVentBusy, foxyFlashed, batteryStolen, moving, movedLast, location, puppetWinding 
+    global nightTimer, status, hallBusy, officeBusy, leftVentBusy, rightVentBusy, foxyFlashed, batteryStolen, location, puppetWinding, foxyTimer
     
     while nightTimer < NIGHT_LEN and not dead:
-        
-        #print(nightTimer, 'yo')
         
         for animatronic in status:
             
@@ -239,34 +251,27 @@ def gameloop():
             
             
             
-            if animatronic == 'freddy' and status[animatronic] == 1 and rightDoorDown:
+            if animatronic == 'freddy' and status[animatronic] == 3 and rightDoorDown:
                 status[animatronic] = 0
-                moving.append(animatronic)
                 sounds['freddylaugh'].play()
                 continue
                 
-            elif animatronic == 'bonnie' and status[animatronic] == 1 and leftDoorDown:
+            elif animatronic == 'bonnie' and status[animatronic] == 3 and leftDoorDown:
                 status[animatronic] = 0
-                moving.append(animatronic)
                 sounds['fnaf1walk'].play()
                 continue
                 
-            elif animatronic == 'chica' and status[animatronic] == 2 and rightDoorDown:
+            elif animatronic == 'chica' and status[animatronic] == 3 and rightDoorDown:
                 status[animatronic] = 0
-                moving.append(animatronic)
                 sounds['fnaf1walk'].play()
                 continue
                 
-            elif animatronic == 'foxy' and status[animatronic] == 3:
-                if leftDoorDown:
-                    status[animatronic] = 0
-                    sounds['doorbang'].play()
-                    continue
-                else:
-                    death('foxy')
-                    return
+            elif animatronic == 'foxy' and status[animatronic] >= 3 and leftDoorDown:
+                foxyTimer = 0
+                status['foxy'] = 0
+                sounds['doorbang'].play()
                 
-            elif animatronic in ['t freddy', 'w freddy', 'w bonnie'] and status[animatronic] == 2:
+            elif animatronic in ['t freddy', 'w freddy', 'w bonnie'] and status[animatronic] == 3:
                 if not maskOn:
                     if animatronic == 't freddy':
                         death('t freddy')
@@ -279,36 +284,33 @@ def gameloop():
                     sounds['blackout'].stop()
                     status[animatronic] = 0
                     officeBusy = False
-                    moving.append(animatronic)
                     continue
                 
-            elif animatronic == 't bonnie' and status[animatronic] == 1 and maskOn:
+            elif animatronic == 't bonnie' and status[animatronic] == 3 and maskOn:
                 status[animatronic] = 0
                 rightVentBusy = False
-                moving.append(animatronic)
                 sounds['ventwalk'].play()
                 continue
             
-            elif animatronic == 'mangle' and status[animatronic] == 2 and maskOn:
+            elif animatronic == 'mangle' and status[animatronic] == 3 and maskOn:
                 status[animatronic] = 0
                 rightVentBusy = False
                 sounds['ventwalk'].play()
                 sounds['manglenoise'].stop()
                 continue
                 
-            elif animatronic == 't chica' and status[animatronic] == 2 and maskOn:
+            elif animatronic == 't chica' and status[animatronic] == 3 and maskOn:
                 status[animatronic] = 0
                 leftVentBusy = False
                 continue
                 
-            elif animatronic == 'bb' and status[animatronic] == 1 and maskOn:
+            elif animatronic == 'bb' and status[animatronic] == 3 and maskOn:
                 status[animatronic] = 0
                 leftVentBusy = False
-                moving.append(animatronic)
                 sounds['ventwalk'].play()
                 continue
             
-            elif animatronic == 'w chica' and status[animatronic] == 1:
+            elif animatronic == 'w chica' and status[animatronic] == 3:
                 if not maskOn:
                     death('w chica')
                     return
@@ -316,14 +318,12 @@ def gameloop():
                     sounds['blackout'].stop()
                     status[animatronic] = 0
                     officeBusy = False
-                    moving.append(animatronic)
                     continue
             
             elif animatronic == 'w foxy' and status[animatronic] == 1:
                 if foxyFlashed:
                     status[animatronic] = 0
                     foxyFlashed = False
-                    moving.append(animatronic)
                     continue
 
             elif animatronic == 'itsme' and status[animatronic] == 1:
@@ -335,41 +335,37 @@ def gameloop():
                     return
              
             div = 20
-            if animatronic in EASY_ANIMATRONICS or animatronic in SLOW_MOVE:
-                div = 30
-            elif animatronic == 'w chica' or animatronic == 'itsme':
-                div = 80
+            #if animatronic in MOVES_3:
+            #    div = 30
+            if animatronic in MOVES_2:
+                div = 40
+            #elif animatronic in MOVES_1:
+            #    div = 80
             
             #input(AI_LEVELS[animatronic] / div)
             if random.random() < AI_LEVELS[animatronic] / div:
-                status[animatronic] += 1
-                
-                if animatronic in SLOW_MOVE:
-                    if animatronic in movedLast:
-                        status[animatronic] -= 1
-                        continue
-                    else:
-                        moving.append(animatronic)
+                status[animatronic] += 1                 
                  
                  
                  
                  ########## ANIMATRONIC CODE: RANDOM EVENTS ##########
                  
+                 
+                 
                 if animatronic == 'freddy':
-                    if status[animatronic] == 2:
+                    if status[animatronic] == 4:
                             death('freddy')
                             return
-                    elif status[animatronic] == 1:
+                    else:
                         sounds['freddylaugh'].play()                   
             
                 elif animatronic == 'bonnie':
-                    if status[animatronic] == 2:
+                    if status[animatronic] == 4:
                             death('bonnie')
                             return
                     else:
                         sounds['fnaf1walk'].play()
-                        sounds['robotvoice'].play()
-                
+                                     
                 elif animatronic == 'chica':
                     if status[animatronic] == 1:
                         sounds['fnaf1walk'].play()
@@ -377,23 +373,24 @@ def gameloop():
                     elif status[animatronic] == 2:
                         sounds['fnaf1walk'].play()
                         sounds['kitchen'].stop()
-                        sounds['robotvoice'].play()
                     elif status[animatronic] == 3:
+                        sounds['fnaf1walk'].play()
+                    elif status[animatronic] == 4:
                             death('chica')
                             return
          
                 elif animatronic == 'foxy':
-                    sounds['piratesong'].play()
+                    pass
+                    #sounds['piratesong'].play()
            
                 elif animatronic in ['t freddy', 'w freddy', 'w bonnie']:
-                    if status[animatronic] == 1:
+                    if status[animatronic] == 2:
                         if hallBusy:
                             status[animatronic] = 0
-                            moving.remove(animatronic)
                         else:
                             hallBusy = True
                             sounds['fnaf2walk'].play()
-                    elif status[animatronic] == 2:
+                    elif status[animatronic] == 3:
                         if not officeBusy:
                             hallBusy = False
                             officeBusy = True
@@ -404,19 +401,24 @@ def gameloop():
                             sounds['wind'].stop()
                         else:
                             status[animatronic] = 1
-                            moving.remove(animatronic)
-                
+                    else:
+                        sounds['fnaf2walk'].play()
+                                     
                 elif animatronic == 't bonnie':
-                    if status[animatronic] == 1:
+                    if status[animatronic] == 3:
                         if rightVentBusy:
                             status[animatronic] = 0
-                            moving.remove(animatronic)
+                            
                         else:
                             rightVentBusy = True
                             sounds['ventwalk'].play()
-                    elif status[animatronic] == 2:
+                    elif status[animatronic] == 4:
                         death('t bonnie')
                         return
+                    elif status[animatronic] == 1:
+                        sounds['fnaf2walk'].play()
+                    elif status[animatronic] == 2:
+                        sounds['ventwalk'].play()
                 
                 elif animatronic == 'mangle':
                     if status[animatronic] == 1:
@@ -426,6 +428,9 @@ def gameloop():
                             hallBusy = True
                             sounds['manglewalk'].play()
                     elif status[animatronic] == 2:
+                        hallBusy = False
+                        sounds['ventwalk'].play()
+                    elif status[animatronic] == 3:
                         if rightVentBusy:
                             status[animatronic] = 1
                         else:
@@ -433,10 +438,10 @@ def gameloop():
                             hallBusy = False
                             sounds['ventwalk'].play()
                             sounds['manglenoise'].play(loops=-1)
-                    elif status[animatronic] == 3:
+                    elif status[animatronic] == 4:
                         rightVentBusy = False
                         sounds['ventwalk'].play()
-                    elif status[animatronic] == 4:
+                    elif status[animatronic] == 5:
                         death('mangle')
                         return
                                    
@@ -448,39 +453,47 @@ def gameloop():
                             hallBusy = True
                             sounds['fnaf2walk'].play()
                     elif status[animatronic] == 2:
+                        hallBusy = False
+                        sounds['ventwalk'].play()
+                    elif status[animatronic] == 3:
                         if leftVentBusy:
                             status[animatronic] = 1
                         else:
                             leftVentBusy = True
                             hallBusy = False
                             sounds['ventwalk'].play()
-                    elif status[animatronic] == 3:
+                    elif status[animatronic] == 4:
                         death('t chica')
                         return
                 
                 elif animatronic == 'bb':
-                    if status[animatronic] == 1:
+                    if status[animatronic] == 3:
                         if leftVentBusy:
                             status[animatronic] = 0
-                            moving.remove(animatronic)
                         else:
                             leftVentBusy = True
                             sounds['bbhello'].play()
-                    elif status[animatronic] == 2:
+                    elif status[animatronic] == 4:
                         batteryStolen = True
                         sounds['bblaugh'].play(loops=-1)
+                    elif status[animatronic] == 1:
+                        sounds['bbhello'].play()
+                    elif status[animatronic] == 2:
+                        sounds['ventwalk'].play()
                 
                 elif animatronic == 'w chica':
-                    if not officeBusy:
-                        officeBusy = True
-                        sounds['blackout'].play()
-                        location = 'center'
-                        puppetWinding = False
-                        sounds['musicbox'].stop()
-                        sounds['wind'].stop()
+                    if status[animatronic] == 3:
+                        if not officeBusy:
+                            officeBusy = True
+                            sounds['blackout'].play()
+                            location = 'center'
+                            puppetWinding = False
+                            sounds['musicbox'].stop()
+                            sounds['wind'].stop()
+                        else:
+                            status[animatronic] = 0
                     else:
-                        status[animatronic] = 0
-                        moving.remove(animatronic)
+                        sounds['fnaf2walk'].play()
                 
                 elif animatronic == 'w foxy':
                     if status[animatronic] == 2:
@@ -501,9 +514,6 @@ def gameloop():
             
            # print(nightTimer)
             time.sleep(movementFreq / len(status))
-            
-        movedLast = moving.copy()
-        moving = []
         
 threading.Thread(target=gameloop).start()
 threading.Thread(target=timers).start()
@@ -528,17 +538,15 @@ sounds['fan'].play(loops=-1)
 while not dead and nightTimer < NIGHT_LEN:
     
     cls()
-    
-    #print(nightTimer)
         
     if nightTimer / NIGHT_LEN > 1/6:
         print(f'{int(nightTimer / NIGHT_LEN*6)} A.M.\n')
     else:
         print('12 A.M.\n')
         
-    if puppetWound < 0.125:
+    if puppetWound < 0.125 or doorTimer > 9:
         print('⚠ ⚠ ⚠\n')
-    elif puppetWound < 0.25:
+    elif puppetWound < 0.25 or doorTimer > 6:
         print('⚠\n')
         
     
@@ -546,11 +554,11 @@ while not dead and nightTimer < NIGHT_LEN:
         
         if officeBusy:
             
-            if status['t freddy'] == 2:
+            if status['t freddy'] == 3:
                 print(constants.T_FREDDY_IN_OFFICE) 
-            elif status['w freddy'] == 2:
+            elif status['w freddy'] == 3:
                 print(constants.W_FREDDY_IN_OFFICE)
-            elif status['w bonnie'] == 2:
+            elif status['w bonnie'] == 3:
                 print(constants.W_BONNIE)
             else:
                 print(constants.W_CHICA)
@@ -573,27 +581,87 @@ while not dead and nightTimer < NIGHT_LEN:
             print()
             print('='*40)
             print()
-            print(f'[1] - Left Door\n[2] - Right Door\n\n[3] - Left Vent\n[4] - Right Vent\n\n[5] - Hallway\n\n[6] - Parts & Service\n\n{'='*40}\n\n[A] - Put On Mask')
+            print(f'[1] - Left Door\n[2] - Right Door\n\n[3] - Left Vent\n[4] - Right Vent\n\n[5] - Hallway\n\n[6] - Parts & Service\n\n[7] - Pirate Cove\n\n{'='*40}\n\n[A] - Put On Mask')
             #print('Where do you want to go?\n\n1 - Left Door\n2 - Left Vent\n3 - Hallway\n4 - Right Door\n5 - Right Vent\n6 - Parts and Service\n\nA - Put on Mask')
             choice = input('\n> ')
+            
             if '1' in choice:
                 location = 'l door'
                 sounds['run'].play()
+                
             elif '2' in choice:
                 location = 'r door'
                 sounds['run'].play()
+                
             elif '3' in choice:
-                location = 'l vent'
-                sounds['run'].play()
+                
+                if not batteryStolen:
+                    sounds['flashlight'].play()
+                    cls()
+                    if status['t chica'] == 3:
+                        input(constants.T_CHICA_IN_VENT)
+                    elif status['bb'] == 3:
+                        input(constants.BB_IN_VENT)
+                    else:
+                        input(constants.EMPTY_VENT)
+                else:
+                    sounds['error'].play()
+                    
             elif '4' in choice:
-                location = 'r vent'
-                sounds['run'].play()
+                
+                if not batteryStolen:
+                    sounds['flashlight'].play()
+                    cls()
+                    if status['t bonnie'] == 3:
+                        input(constants.T_BONNIE_IN_VENT)
+                    elif status['mangle'] == 3:
+                        input(constants.MANGLE_IN_VENT)
+                    else:
+                        input(constants.EMPTY_VENT)
+                    
+                else:
+                    sounds['error'].play()
+                
             elif '5' in choice:
-                location = 'hall'
-                sounds['run'].play()
+                
+                if not batteryStolen:
+                    sounds['flashlight'].play()
+                    if status['w foxy'] == 1:
+                        foxyFlashed = True
+                    cls()
+                    if status['t chica'] == 1:
+                        input(constants.T_CHICA_IN_HALL)
+                    elif status['t freddy'] == 2:
+                        input(constants.T_FREDDY_IN_HALL)
+                    elif status['mangle'] == 1:
+                        input(constants.MANGLE_IN_HALL)
+                    elif status['w bonnie'] == 2:
+                        input(constants.W_BONNIE)
+                    elif status['w freddy'] == 2:
+                        input(constants.W_FREDDY_IN_HALL)
+                    elif status['w foxy'] == 1:
+                        input(constants.W_FOXY)
+                    else:
+                        input(constants.FLASHLIGHT)
+                else:
+                    sounds['error'].play()
+                
             elif '6' in choice:
                 location = 'parts'
                 sounds['run'].play()
+            
+            elif '7' in choice:
+                sounds['flashlight'].play()
+                cls()
+                if status['foxy'] == 0:
+                    input(constants.CURTAIN_CLOSED)
+                elif status['foxy'] == 1:
+                    input(constants.CURTAIN_1)
+                elif status['foxy'] == 2:
+                    input(constants.CURTAIN_2)
+                elif status['foxy'] == 3:
+                    input(constants.CURTAIN_OPEN)
+                
             elif 'a' in choice.lower():
                 location = 'mask'
                 maskOn = True
@@ -602,7 +670,7 @@ while not dead and nightTimer < NIGHT_LEN:
         print(constants.MASK)
         sounds['maskon'].play()
         sounds['maskbreath'].play(loops=-1)
-        input('[enter] - Take Off the Mask')
+        input('> ')
         maskOn = False
         location = 'center'
         sounds['maskbreath'].stop()
@@ -619,15 +687,15 @@ while not dead and nightTimer < NIGHT_LEN:
         print()
         print('[1] - Flash the door\n\n[2] - ', end='')
         if leftDoorDown:
-            print(f'Open Door\n\n{'='*40}\n\n[3] - Leave')
+            print(f'Open the Door\n\n{'='*40}\n\n[3] - Leave')
         else:
-            print(f'Close Door\n\n{'='*40}\n\n[3] - Leave')
+            print(f'Close the Door\n\n{'='*40}\n\n[3] - Leave')
         choice = input('\n> ')
         
         if '1' in choice and not batteryStolen:
             cls()
             sounds['flashlight'].play()
-            if status['bonnie'] == 1:
+            if status['bonnie'] == 3:
                 sounds['windowscare'].play()
                 input(constants.BONNIE)
                 
@@ -664,7 +732,7 @@ while not dead and nightTimer < NIGHT_LEN:
         if '1' in choice and not batteryStolen:
             cls()
             sounds['flashlight'].play()
-            if status['chica'] == 2:
+            if status['chica'] == 3:
                 sounds['windowscare'].play()
                 input(constants.CHICA)
             else:
@@ -680,100 +748,6 @@ while not dead and nightTimer < NIGHT_LEN:
             location = 'center'
             sounds['run'].play()
     
-    elif location == 'hall':
-        print('You are in the Hallway.')
-        print()
-        print('='*40)
-        print()
-        print('What do you want to do?')
-        print()
-        print('='*40)
-        print()
-        print(f'[1] - Flash the Hallway\n\n{'='*40}\n\n[2] - Leave the Hallway')
-        choice = input('\n> ')
-        
-        if '1' in choice and not batteryStolen:
-            sounds['flashlight'].play()
-            if status['w foxy'] == 1:
-                foxyFlashed = True
-            cls()
-            if status['t chica'] == 1:
-                input(constants.T_CHICA_IN_HALL)
-            elif status['t freddy'] == 1:
-                input(constants.T_FREDDY_IN_HALL)
-            elif status['mangle'] == 1:
-                input(constants.MANGLE_IN_HALL)
-            elif status['w bonnie'] == 1:
-                input(constants.W_BONNIE)
-            elif status['w freddy'] == 1:
-                input(constants.W_FREDDY_IN_HALL)
-            elif status['w foxy'] == 1:
-                input(constants.W_FOXY)
-            else:
-                input(constants.FLASHLIGHT)
-        elif '1' in choice and batteryStolen:
-            sounds['error'].play()
-    
-        elif '2' in choice:
-            location = 'center'
-            sounds['run'].play()
-    
-    elif location == 'l vent':
-        print('You are beside the Left Vent.')
-        print()
-        print('='*40)
-        print()
-        print('What do you want to do?')
-        print()
-        print('='*40)
-        print()
-        print(f'[1] - Flash the Vent\n\n{'='*40}\n\n[2] - Leave')
-        choice = input('\n> ')
-        
-        if '1' in choice and not batteryStolen:
-            sounds['flashlight'].play()
-            cls()
-            if status['t chica'] == 2:
-                input(constants.T_CHICA_IN_VENT)
-            elif status['bb'] == 1:
-                input(constants.BB_IN_VENT)
-            else:
-                input(constants.EMPTY_VENT)
-        elif '1' in choice and batteryStolen:
-            sounds['error'].play()
-    
-        elif '2' in choice:
-            location = 'center'
-            sounds['run'].play()
-    
-    elif location == 'r vent':
-        print('You are beside the Right Vent.')
-        print()
-        print('='*40)
-        print()
-        print('What do you want to do?')
-        print()
-        print('='*40)
-        print()
-        print(f'[1] - Flash the Vent\n\n{'='*40}\n\n[2] - Leave')
-        choice = input('\n> ')
-        
-        if '1' in choice and not batteryStolen:
-            sounds['flashlight'].play()
-            cls()
-            if status['t bonnie'] == 1:
-                input(constants.T_BONNIE_IN_VENT)
-            elif status['mangle'] == 2:
-                input(constants.MANGLE_IN_VENT)
-            else:
-                input(constants.EMPTY_VENT)
-        elif '1' in choice and batteryStolen:
-            sounds['error'].play()
-    
-        elif '2' in choice:
-            location = 'center'
-            sounds['run'].play()
-    
     elif location == 'parts':
         print('You are in Parts & Service.')
         print()
@@ -783,61 +757,25 @@ while not dead and nightTimer < NIGHT_LEN:
         print()
         print('='*40)
         print()
-        print(f'[1] - View Pirate\'s Cove\n\n[2] - Visit the Prize Corner\n\n[3] - Look in the Back Room\n\n{'='*40}\n\n[4] - Leave')
+        print(f'[1] - Visit the Prize Corner\n\n[2] - Look in the Back Room\n\n{'='*40}\n\n[3] - Leave')
         choice = input('\n> ')
-        
-        if '1' in choice:
-            sounds['flashlight'].play()
-            cls()
-            if status['foxy'] == 0:
-                input(constants.CURTAIN_CLOSED)
-            elif status['foxy'] == 1:
-                input(constants.CURTAIN_1)
-            elif status['foxy'] == 2:
-                input(constants.CURTAIN_2)
-            elif status['foxy'] == 3:
-                input(constants.CURTAIN_OPEN)
 
-        elif '2' in choice:
-            location = 'prize'
-            sounds['run'].play()
-        
-        elif '3' in choice:
-            location = 'back'
-            sounds['run'].play()
-    
-        elif '4' in choice:
-            location = 'center'
-            sounds['run'].play()
-    
-    elif location == 'prize':
-        
-        if not playingMusicBox:
-            sounds['musicbox'].play(loops=-1)
-            playingMusicBox = True
-            
-        print('You are in the Prize Corner.')
-        print()
-        print('='*40)
-        print()
-        print('What do you want to do?')
-        print()
-        print('='*40)
-        print()
-        print(f'[1] - Check Music Bok\n\n[2] - Wind Up Music Box\n\n{'='*40}\n\n[3] - Leave')
-        choice = input('\n> ')
-        
         if '1' in choice:
+            
             cls()
+            
+            if not playingMusicBox:
+                sounds['musicbox'].play(loops=-1)
+                playingMusicBox = True
+        
             print('='*40)
             print()
             print(f'Music Box Level: {round(puppetWound*100)}%')
             print()
             print('='*40)
             input('\n> ')
-        
-        elif '2' in choice:
-            cls()
+            print()
+            
             sounds['wind'].play(loops=-1)
             puppetWinding = True
             print('='*40)
@@ -846,16 +784,21 @@ while not dead and nightTimer < NIGHT_LEN:
             print()
             print('='*40)
             print()
-            print('[enter] - Stop Winding the Music Box')
             input('\n> ')
             puppetWinding = False
             sounds['wind'].stop()
         
-        elif '3' in choice:
-            location = 'parts'
             sounds['musicbox'].stop()
             sounds['run'].play()
             playingMusicBox = False
+        
+        elif '2' in choice:
+            location = 'back'
+            sounds['run'].play()
+    
+        elif '3' in choice:
+            location = 'center'
+            sounds['run'].play()
 
     elif location == 'back':
         print('You are in the Back Room.')
