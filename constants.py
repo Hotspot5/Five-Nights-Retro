@@ -1,25 +1,25 @@
 AI_LEVELS = {
-    'freddy': 2, 
-    'bonnie': 2, 
-    'chica': 2, 
-    'foxy': 2, 
-    't freddy': 2, 
-    't bonnie': 2, 
-    't chica': 2,  
-    'w freddy': 2, 
-    'w bonnie': 2, 
-    'w chica': 2, 
-    'w foxy': 2, 
-    'bb': 2, 
-    'mangle': 2, 
-    'puppet': 2, 
-    'springtrap': 2, 
-    'itsme': 2, 
+    'freddy': 0, 
+    'bonnie': 0, 
+    'chica': 0, 
+    'foxy': 0, 
+    't freddy': 0, 
+    't bonnie': 0, 
+    't chica': 0,  
+    'w freddy': 0, 
+    'w bonnie': 0, 
+    'w chica': 0, 
+    'w foxy': 0, 
+    'bb': 0, 
+    'mangle': 0, 
+    'puppet': 0, 
+    'springtrap': 0, 
+    'itsme': 0, 
 }
 
-MOVES_1 = {}
-MOVES_2 = {'w foxy', 'itsme'}
-MOVES_3 = {}
+MOVES_1 = ()
+MOVES_2 = ('w foxy', 'itsme')
+MOVES_3 = ()
 
 NIGHT_LEN = 360
 
